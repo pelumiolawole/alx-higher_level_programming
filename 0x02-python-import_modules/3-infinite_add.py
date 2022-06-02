@@ -4,5 +4,5 @@ if __name__ == "__main__":
     infinite_add = 0
     for i in argv[1:]:
         add += int(i)
-    print("{:d}".format(add))
+    print("{:d}".format(infinite_add))
     
