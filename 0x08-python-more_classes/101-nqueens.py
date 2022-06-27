@@ -1,110 +1,87 @@
-''' Python3 program to solve N Queen Problem using
-backtracking '''
+"""Find all possible chess-board combinations of size n*n with n queens,
+where queens are represented by the digit 2"""
+from collections import Counter
+import numpy as np
 
 
-result = []
-
-# A utility function to print solution
-
-
-''' A utility function to check if a queen can
-be placed on board[row][col]. Note that this
-function is called when "col" queens are
-already placed in columns from 0 to col -1.
-So we need to check only left side for
-attacking queens '''
-
-
-def isSafe(board, row, col):
-
-	# Check this row on left side
-	for i in range(col):
-		if (board[row][i]):
-			return False
-
-	# Check upper diagonal on left side
-	i = row
-	j = col
-	while i >= 0 and j >= 0:
-		if(board[i][j]):
-			return False
-		i -= 1
-		j -= 1
-
-	# Check lower diagonal on left side
-	i = row
-	j = col
-	while j >= 0 and i < 4:
-		if(board[i][j]):
-			return False
-		i = i + 1
-		j = j - 1
-
-	return True
-
-
-''' A recursive utility function to solve N
-Queen problem '''
-
-
-def solveNQUtil(board, col):
-	''' base case: If all queens are placed
-	then return true '''
-	if (col == 4):
-		v = []
-		for i in board:
-		for j in range(len(i)):
-			if i[j] == 1:
-			v.append(j+1)
-		result.append(v)
-		return True
-
-	''' Consider this column and try placing
-	this queen in all rows one by one '''
-	res = False
-	for i in range(4):
-
-		''' Check if queen can be placed on
-		board[i][col] '''
-		if (isSafe(board, i, col)):
-
-			# Place this queen in board[i][col]
-			board[i][col] = 1
-
-			# Make result true if any placement
-			# is possible
-			res = solveNQUtil(board, col + 1) or res
-
-			''' If placing queen in board[i][col]
-			doesn't lead to a solution, then
-			remove queen from board[i][col] '''
-			board[i][col] = 0 # BACKTRACK
-
-	''' If queen can not be place in any row in
-		this column col then return false '''
-	return res
+def block_positions(chess_board, row, column, limit):
+    """Fills all squares that can no longer contain a queen with the value -1
+    There are a maximum of 8 directions that must be blocked from a given square"""
+    # Block left
+    for col in range(column - 1, -1, -1):
+        chess_board[row, col] = 0
+    # Block right
+    for col in range(column + 1, limit):
+        chess_board[row, col] = 0
+    # Block up
+    for rw in range(row - 1, -1, -1):
+        chess_board[rw, column] = 0
+    # Block down
+    for rw in range(row + 1, limit):
+        chess_board[rw, column] = 0
+    # Block L up-diag
+    rw = row
+    col = column
+    while rw > 0 and col > 0:
+        rw -= 1
+        col -= 1
+        chess_board[rw, col] = 0
+    # Block L down-diag
+    rw = row
+    col = column
+    while rw < limit - 1 and col > 0:
+        rw += 1
+        col -= 1
+        chess_board[rw, col] = 0
+    # Block R up-diag
+    rw = row
+    col = column
+    while rw > 0 and col < limit - 1:
+        rw -= 1
+        col += 1
+        chess_board[rw, col] = 0
+    # Block R down-diag
+    rw = row
+    col = column
+    while rw < limit - 1 and col < limit - 1:
+        rw += 1
+        col += 1
+        chess_board[rw, col] = 0
+    return chess_board
 
 
-''' This function solves the N Queen problem using
-Backtracking. It mainly uses solveNQUtil() to
-solve the problem. It returns false if queens
-cannot be placed, otherwise return true and
-prints placement of queens in the form of 1s.
-Please note that there may be more than one
-solutions, this function prints one of the
-feasible solutions.'''
+def initialise_board(num):
+    """Build the empty board"""
+    board = np.ones(num * num).reshape(num, num)
+    return board
 
 
-def solveNQ(n):
-	result.clear()
-	board = [[0 for j in range(n)]
-			for i in range(n)]
-	solveNQUtil(board, 0)
-	result.sort()
-	return result
+def valid_boards(board, row, num):
+    """Find all valid N-queen boards"""
+    global counter
+    while row < num:
+        indices = [index for index in range(num) if board[row, index] == 1]
+        if indices == []:
+            return False
+        for index in indices:
+            old_board = board.copy()
+            board[row, index] = 2
+            board = block_positions(board, row, index, num)
+            is_possible = valid_boards(board, row + 1, num)
+            board = old_board
+            if not is_possible and index == indices[-1]:
+                return False
+    flattened = Counter(board.flatten())
+    if flattened[2] == num:
+        print(board)
+        print()
+        counter += 1
 
 
-# Driver Code
-n = 4
-res = solveNQ(n)
-print(res)
+if __name__ == "__main__":
+    counter = 0
+    num = 5
+    board = initialise_board(num)
+    valid_boards(board, row=0, num=num)
+    print(counter, "solutions")
+    print("Finished")
